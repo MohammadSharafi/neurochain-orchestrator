@@ -8,7 +8,9 @@ part 'ai_sandbox_event.dart';
 part 'ai_sandbox_state.dart';
 
 class AISandboxBloc extends Bloc<AISandboxEvent, AISandboxState> {
-  AISandboxBloc() : super(AISandboxInitial()) {
+  final AISandboxRepository repository;
+
+  AISandboxBloc(this.repository) : super(AISandboxInitial()) {
     on<LoadSandboxHistory>(_onLoadSandboxHistory);
     on<ExecuteNode>(_onExecuteNode);
   }
@@ -17,7 +19,7 @@ class AISandboxBloc extends Bloc<AISandboxEvent, AISandboxState> {
     LoadSandboxHistory event,
     Emitter<AISandboxState> emit,
   ) async {
-    // TODO: Load from GraphQL
+    // TODO: Load history from GraphQL
     emit(AISandboxInitial());
   }
 
@@ -26,31 +28,44 @@ class AISandboxBloc extends Bloc<AISandboxEvent, AISandboxState> {
     Emitter<AISandboxState> emit,
   ) async {
     emit(AISandboxLoading());
-    try {
-      // TODO: Execute via GraphQL mutation
-      // For now, simulate result
-      await Future.delayed(const Duration(seconds: 2));
-      
-      emit(AISandboxResult(
-        executionId: 'exec_${DateTime.now().millisecondsSinceEpoch}',
-        success: true,
-        inputs: event.inputs,
-        outputs: {'result': 'Mock output'},
-        reasoning: {
-          'model': 'llama',
-          'inputTokens': 10,
-          'outputTokens': 20,
-        },
-        executionTimeMs: 1500,
-        latencyStats: LatencyStats(
-          averageMs: 1500.0,
-          minMs: 1200.0,
-          maxMs: 1800.0,
-          sampleCount: 5,
-        ),
-      ));
-    } catch (e) {
-      emit(AISandboxError(e.toString()));
+    
+    final node = {
+      'id': 'node_${DateTime.now().millisecondsSinceEpoch}',
+      'type': event.nodeType,
+      'name': event.nodeName,
+      'parameters': {},
+    };
+
+    final result = await repository.executeInSandbox(node, event.inputs);
+    result.fold(
+      (failure) => emit(AISandboxError(_mapFailureToMessage(failure))),
+      (sandboxResult) => emit(AISandboxResult(
+        executionId: sandboxResult.executionId,
+        success: sandboxResult.success,
+        inputs: sandboxResult.inputs,
+        outputs: sandboxResult.outputs,
+        reasoning: sandboxResult.reasoning,
+        executionTimeMs: sandboxResult.executionTimeMs,
+        errorMessage: sandboxResult.errorMessage,
+        latencyStats: sandboxResult.latencyStats != null
+            ? LatencyStats(
+                averageMs: sandboxResult.latencyStats!.averageMs,
+                minMs: sandboxResult.latencyStats!.minMs,
+                maxMs: sandboxResult.latencyStats!.maxMs,
+                sampleCount: sandboxResult.latencyStats!.sampleCount,
+              )
+            : null,
+      )),
+    );
+  }
+
+  String _mapFailureToMessage(Failure failure) {
+    if (failure is ServerFailure) {
+      return failure.message;
+    } else if (failure is NetworkFailure) {
+      return 'Network error: ${failure.message}';
+    } else {
+      return 'Unexpected error: ${failure.message}';
     }
   }
 }
