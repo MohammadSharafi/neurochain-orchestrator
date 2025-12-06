@@ -144,3 +144,193 @@ type Subscription {
   nodeExecutionUpdated(executionId: ID!, nodeId: ID!): NodeExecution!
 }
 
+# AI Sandbox
+type SandboxResult {
+  executionId: ID!
+  success: Boolean!
+  inputs: JSON!
+  outputs: JSON
+  reasoning: JSON
+  executionTimeMs: Long!
+  errorMessage: String
+  latencyStats: LatencyStats
+}
+
+type LatencyStats {
+  averageMs: Float!
+  minMs: Float!
+  maxMs: Float!
+  sampleCount: Int!
+}
+
+# Model Manager
+type ModelInfo {
+  name: String!
+  installed: Boolean!
+  sizeBytes: Long!
+  path: String!
+}
+
+type ModelBenchmark {
+  modelName: String!
+  tokensPerSecond: Float!
+  latencyMs: Float!
+  memoryMB: Long!
+  timestamp: Long!
+}
+
+# Vector Store
+type VectorStore {
+  id: ID!
+  name: String!
+  documentCount: Int!
+}
+
+type SearchResult {
+  documentId: ID!
+  text: String!
+  score: Float!
+  metadata: JSON!
+}
+
+# Fine Tuning
+type FineTuningJob {
+  jobId: ID!
+  modelName: String!
+  method: FineTuningMethod!
+  status: FineTuningStatus!
+  progress: Float!
+  outputModelPath: String
+}
+
+enum FineTuningMethod {
+  LORA
+  EMBEDDING
+  SUPERVISED
+}
+
+enum FineTuningStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+# Marketplace
+type MarketplaceItem {
+  id: ID!
+  name: String!
+  description: String!
+  category: ItemCategory!
+  version: String!
+  author: String!
+  installed: Boolean!
+}
+
+enum ItemCategory {
+  PLUGIN
+  NODE_PACK
+  TEMPLATE
+  MODEL_BUNDLE
+}
+
+# Time Travel Debugger
+type ExecutionTimeline {
+  executionId: ID!
+  events: [TimelineEvent!]!
+}
+
+type TimelineEvent {
+  id: ID!
+  nodeId: ID!
+  type: EventType!
+  timestamp: String!
+  data: JSON!
+}
+
+enum EventType {
+  WORKFLOW_STARTED
+  WORKFLOW_COMPLETED
+  NODE_STARTED
+  NODE_COMPLETED
+  NODE_FAILED
+  DATA_FLOW
+}
+
+type IOHistory {
+  timestamp: String!
+  inputs: JSON!
+  outputs: JSON!
+}
+
+# Extended Queries
+extend type Query {
+  # AI Sandbox
+  testNode(node: NodeInput!, inputs: JSON!): SandboxResult!
+  
+  # Model Manager
+  installedModels: [ModelInfo!]!
+  modelInfo(name: String!): ModelInfo!
+  benchmarkModel(name: String!): ModelBenchmark!
+  
+  # Vector Stores
+  vectorStores: [VectorStore!]!
+  searchVectorStore(storeId: ID!, query: String!, topK: Int!): [SearchResult!]!
+  
+  # Fine Tuning
+  fineTuningJob(jobId: ID!): FineTuningJob!
+  
+  # Marketplace
+  marketplaceItems(category: ItemCategory): [MarketplaceItem!]!
+  marketplaceItem(id: ID!): MarketplaceItem!
+  
+  # Time Travel Debugger
+  executionTimeline(executionId: ID!): ExecutionTimeline!
+  ioHistory(executionId: ID!, nodeId: ID!): [IOHistory!]!
+}
+
+# Extended Mutations
+extend type Mutation {
+  # AI Sandbox
+  executeInSandbox(node: NodeInput!, inputs: JSON!): SandboxResult!
+  
+  # Model Manager
+  installModel(name: String!, url: String!): ModelInstallResult!
+  removeModel(name: String!): Boolean!
+  
+  # Vector Stores
+  createVectorStore(name: String!): VectorStore!
+  addDocument(storeId: ID!, documentId: ID!, text: String!, metadata: JSON): Boolean!
+  
+  # Fine Tuning
+  startFineTuning(input: FineTuningInput!): FineTuningJob!
+  
+  # Marketplace
+  installMarketplaceItem(itemId: ID!): InstallationResult!
+  
+  # AI Auto-Build
+  generateWorkflowFromDescription(description: String!, name: String!): Workflow!
+  
+  # DSL
+  createWorkflowFromDSL(dsl: String!, name: String!): Workflow!
+}
+
+input FineTuningInput {
+  modelName: String!
+  trainingDataPath: String!
+  method: FineTuningMethod!
+  hyperparameters: JSON
+}
+
+type ModelInstallResult {
+  success: Boolean!
+  message: String!
+  error: String
+}
+
+type InstallationResult {
+  success: Boolean!
+  message: String!
+  error: String
+}
+
