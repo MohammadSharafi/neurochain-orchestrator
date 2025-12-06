@@ -53,6 +53,13 @@ public class MarketplaceService {
     }
 
     /**
+     * Get item by ID
+     */
+    public MarketplaceItem getItem(String itemId) {
+        return items.get(itemId);
+    }
+
+    /**
      * Add item to marketplace
      */
     public void addItem(MarketplaceItem item) {

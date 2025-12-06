@@ -45,7 +45,7 @@ public class AdvancedFeaturesResolver {
     // AI Sandbox
     @QueryMapping
     public AISandboxService.SandboxResult testNode(
-            @Argument WorkflowResolver.NodeInput nodeInput,
+            @Argument NodeInput nodeInput,
             @Argument Map<String, Object> inputs) {
         Node node = convertNodeInput(nodeInput);
         CompletableFuture<AISandboxService.SandboxResult> future = sandboxService.executeNode(node, inputs);
@@ -58,7 +58,7 @@ public class AdvancedFeaturesResolver {
 
     @MutationMapping
     public AISandboxService.SandboxResult executeInSandbox(
-            @Argument WorkflowResolver.NodeInput nodeInput,
+            @Argument NodeInput nodeInput,
             @Argument Map<String, Object> inputs) {
         return testNode(nodeInput, inputs);
     }
@@ -152,10 +152,7 @@ public class AdvancedFeaturesResolver {
 
     @QueryMapping
     public MarketplaceService.MarketplaceItem marketplaceItem(@Argument String id) {
-        return marketplace.getAllItems().stream()
-                .filter(item -> item.getId().equals(id))
-                .findFirst()
-                .orElse(null);
+        return marketplace.getItem(id);
     }
 
     @MutationMapping
@@ -213,7 +210,7 @@ public class AdvancedFeaturesResolver {
                 .toList();
     }
 
-    private Node convertNodeInput(WorkflowResolver.NodeInput input) {
+    private Node convertNodeInput(NodeInput input) {
         Node node = new Node();
         node.setId(input.getId());
         node.setType(input.getType());
@@ -221,6 +218,29 @@ public class AdvancedFeaturesResolver {
         node.setName(input.getName());
         node.setParameters(input.getParameters());
         return node;
+    }
+
+    // Reuse NodeInput structure (matches GraphQL schema)
+    public static class NodeInput {
+        private String id;
+        private String type;
+        private String pluginId;
+        private String name;
+        private Map<String, Object> parameters;
+        private Object position; // NodePositionInput
+
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+        public String getType() { return type; }
+        public void setType(String type) { this.type = type; }
+        public String getPluginId() { return pluginId; }
+        public void setPluginId(String pluginId) { this.pluginId = pluginId; }
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+        public Map<String, Object> getParameters() { return parameters; }
+        public void setParameters(Map<String, Object> parameters) { this.parameters = parameters; }
+        public Object getPosition() { return position; }
+        public void setPosition(Object position) { this.position = position; }
     }
 
     // DTOs
