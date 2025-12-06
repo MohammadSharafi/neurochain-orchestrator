@@ -28,29 +28,47 @@ class ModelManagerBloc extends Bloc<ModelManagerEvent, ModelManagerState> {
   }
 
   void _onInstallModel(InstallModel event, Emitter<ModelManagerState> emit) async {
-    try {
-      // TODO: Install via GraphQL
-      emit(ModelManagerInstalling(event.modelName));
-    } catch (e) {
-      emit(ModelManagerError(e.toString()));
-    }
+    emit(ModelManagerInstalling(event.modelName));
+    final result = await repository.installModel(event.modelName, event.url);
+    result.fold(
+      (failure) => emit(ModelManagerError(_mapFailureToMessage(failure))),
+      (installResult) {
+        if (installResult.success) {
+          add(LoadModels());
+        } else {
+          emit(ModelManagerError(installResult.error ?? installResult.message));
+        }
+      },
+    );
   }
 
   void _onRemoveModel(RemoveModel event, Emitter<ModelManagerState> emit) async {
-    try {
-      // TODO: Remove via GraphQL
-      add(LoadModels());
-    } catch (e) {
-      emit(ModelManagerError(e.toString()));
-    }
+    final result = await repository.removeModel(event.modelName);
+    result.fold(
+      (failure) => emit(ModelManagerError(_mapFailureToMessage(failure))),
+      (_) => add(LoadModels()),
+    );
   }
 
   void _onBenchmarkModel(BenchmarkModel event, Emitter<ModelManagerState> emit) async {
-    try {
-      // TODO: Benchmark via GraphQL
-      emit(ModelManagerBenchmarking(event.modelName));
-    } catch (e) {
-      emit(ModelManagerError(e.toString()));
+    emit(ModelManagerBenchmarking(event.modelName));
+    final result = await repository.benchmarkModel(event.modelName);
+    result.fold(
+      (failure) => emit(ModelManagerError(_mapFailureToMessage(failure))),
+      (benchmark) {
+        // TODO: Show benchmark results in a dialog or snackbar
+        add(LoadModels()); // Reload to show updated state
+      },
+    );
+  }
+
+  String _mapFailureToMessage(Failure failure) {
+    if (failure is ServerFailure) {
+      return failure.message;
+    } else if (failure is NetworkFailure) {
+      return 'Network error: ${failure.message}';
+    } else {
+      return 'Unexpected error: ${failure.message}';
     }
   }
 }
