@@ -3,7 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'graphql/graphql_client.dart';
 import 'presentation/bloc/model_manager/model_manager_bloc.dart';
+import 'presentation/bloc/ai_sandbox/ai_sandbox_bloc.dart';
+import 'presentation/bloc/vector_store/vector_store_bloc.dart';
 import 'presentation/screens/model_manager_screen.dart';
+import 'presentation/screens/ai_sandbox_screen.dart';
+import 'presentation/screens/vector_store_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -70,7 +74,12 @@ class HomeScreen extends StatelessWidget {
             icon: Icons.science,
             color: Colors.green,
             onTap: () {
-              // TODO: Navigate to AI Sandbox
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const AISandboxScreen(),
+                ),
+              );
             },
           ),
           _FeatureCard(
@@ -78,7 +87,12 @@ class HomeScreen extends StatelessWidget {
             icon: Icons.storage,
             color: Colors.orange,
             onTap: () {
-              // TODO: Navigate to Vector Stores
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const VectorStoreScreen(),
+                ),
+              );
             },
           ),
           _FeatureCard(
