@@ -1,0 +1,146 @@
+type Workflow {
+  id: ID!
+  name: String!
+  description: String
+  nodes: [Node!]!
+  connections: [Connection!]!
+  status: WorkflowStatus!
+  triggerType: TriggerType!
+  triggerConfig: String
+  createdAt: String!
+  updatedAt: String!
+}
+
+type Node {
+  id: ID!
+  type: String!
+  pluginId: String
+  name: String!
+  parameters: JSON!
+  position: NodePosition
+}
+
+type NodePosition {
+  x: Float!
+  y: Float!
+}
+
+type Connection {
+  id: ID!
+  sourceNodeId: ID!
+  sourcePort: String!
+  targetNodeId: ID!
+  targetPort: String!
+}
+
+type WorkflowExecution {
+  id: ID!
+  workflowId: ID!
+  status: ExecutionStatus!
+  startedAt: String!
+  completedAt: String
+  nodeExecutions: [NodeExecution!]!
+  inputs: JSON!
+  outputs: JSON
+  errorMessage: String
+  metrics: ExecutionMetrics
+}
+
+type NodeExecution {
+  nodeId: ID!
+  status: ExecutionStatus!
+  startedAt: String!
+  completedAt: String
+  inputs: JSON!
+  outputs: JSON
+  errorMessage: String
+  executionTimeMs: Long!
+}
+
+type ExecutionMetrics {
+  totalExecutionTimeMs: Long!
+  nodesExecuted: Int!
+  nodesFailed: Int!
+  aiInferenceTimeMs: Long!
+  dataProcessingTimeMs: Long!
+}
+
+enum WorkflowStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  COMPLETED
+  FAILED
+}
+
+enum TriggerType {
+  MANUAL
+  SCHEDULE
+  FILE_WATCHER
+  HTTP_WEBHOOK
+  EVENT
+}
+
+enum ExecutionStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+scalar JSON
+scalar Long
+
+type Query {
+  workflows: [Workflow!]!
+  workflow(id: ID!): Workflow
+  executions(workflowId: ID!): [WorkflowExecution!]!
+  execution(id: ID!): WorkflowExecution
+}
+
+type Mutation {
+  createWorkflow(input: WorkflowInput!): Workflow!
+  updateWorkflow(id: ID!, input: WorkflowInput!): Workflow!
+  deleteWorkflow(id: ID!): Boolean!
+  executeWorkflow(id: ID!, inputs: JSON): WorkflowExecution!
+  pauseWorkflow(id: ID!): Workflow!
+  resumeWorkflow(id: ID!): Workflow!
+}
+
+input WorkflowInput {
+  name: String!
+  description: String
+  nodes: [NodeInput!]!
+  connections: [ConnectionInput!]!
+  triggerType: TriggerType!
+  triggerConfig: String
+}
+
+input NodeInput {
+  id: ID!
+  type: String!
+  pluginId: String
+  name: String!
+  parameters: JSON!
+  position: NodePositionInput
+}
+
+input NodePositionInput {
+  x: Float!
+  y: Float!
+}
+
+input ConnectionInput {
+  id: ID!
+  sourceNodeId: ID!
+  sourcePort: String!
+  targetNodeId: ID!
+  targetPort: String!
+}
+
+type Subscription {
+  executionUpdated(executionId: ID!): WorkflowExecution!
+  nodeExecutionUpdated(executionId: ID!, nodeId: ID!): NodeExecution!
+}
+
