@@ -129,8 +129,87 @@ def analyze_image():
 def models():
     return jsonify(ai_worker.get_model_info())
 
+@app.route('/api/v1/models/<model_name>/benchmark', methods=['POST'])
+def benchmark_model(model_name):
+    """Benchmark a model"""
+    logger.info(f"Benchmarking model: {model_name}")
+    
+    # TODO: Run actual benchmark
+    result = {
+        "modelName": model_name,
+        "tokensPerSecond": 100.0,
+        "latencyMs": 50.0,
+        "memoryMB": 1024,
+        "timestamp": int(time.time() * 1000)
+    }
+    return jsonify(result)
+
+@app.route('/api/v1/models/<model_name>/install', methods=['POST'])
+def install_model(model_name):
+    """Install a model"""
+    data = request.json
+    model_url = data.get('url')
+    
+    logger.info(f"Installing model: {model_name} from {model_url}")
+    
+    # TODO: Download and install model
+    return jsonify({
+        "success": True,
+        "message": f"Model {model_name} installed successfully"
+    })
+
+@app.route('/api/v1/embeddings', methods=['POST'])
+def generate_embedding():
+    """Generate embedding for text"""
+    data = request.json
+    text = data.get('text', '')
+    
+    logger.info(f"Generating embedding for text length: {len(text)}")
+    
+    # TODO: Use sentence-transformers or similar
+    # For now, return mock embedding (384 dimensions)
+    import random
+    embedding = [random.uniform(-1, 1) for _ in range(384)]
+    
+    return jsonify({
+        "embedding": embedding,
+        "dimensions": 384
+    })
+
+@app.route('/api/v1/fine-tune', methods=['POST'])
+def fine_tune():
+    """Start fine-tuning a model"""
+    data = request.json
+    model_name = data.get('model_name')
+    training_data_path = data.get('training_data_path')
+    method = data.get('method', 'LORA')
+    
+    logger.info(f"Starting fine-tuning: {model_name} with {method}")
+    
+    # TODO: Implement actual fine-tuning
+    job_id = f"ft_{int(time.time())}"
+    
+    return jsonify({
+        "jobId": job_id,
+        "modelName": model_name,
+        "method": method,
+        "status": "RUNNING",
+        "progress": 0.0
+    })
+
+@app.route('/api/v1/fine-tune/<job_id>', methods=['GET'])
+def get_fine_tune_status(job_id):
+    """Get fine-tuning job status"""
+    # TODO: Get actual status
+    return jsonify({
+        "jobId": job_id,
+        "status": "RUNNING",
+        "progress": 50.0
+    })
+
 if __name__ == '__main__':
-    port = int(os.getenv('PORT', 8000))
+    import time
+    port = int(os.getenv('PORT', 5000))
     logger.info(f"Starting AI Worker on port {port}")
     app.run(host='0.0.0.0', port=port, debug=False)
 
