@@ -186,6 +186,8 @@ type VectorStore {
   documentCount: Int!
 }
 
+# Note: VectorStore in schema uses VectorStoreDTO from resolver
+
 type SearchResult {
   documentId: ID!
   text: String!
@@ -273,9 +275,9 @@ extend type Query {
   modelInfo(name: String!): ModelInfo!
   benchmarkModel(name: String!): ModelBenchmark!
   
-  # Vector Stores
-  vectorStores: [VectorStore!]!
-  searchVectorStore(storeId: ID!, query: String!, topK: Int!): [SearchResult!]!
+    # Vector Stores
+    vectorStores: [VectorStore!]!
+    searchVectorStore(storeId: ID!, query: String!, topK: Int): [SearchResult!]!
   
   # Fine Tuning
   fineTuningJob(jobId: ID!): FineTuningJob!

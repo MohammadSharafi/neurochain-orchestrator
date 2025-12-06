@@ -93,14 +93,9 @@ public class AdvancedFeaturesResolver {
 
     // Vector Stores
     @QueryMapping
-    public List<VectorStoreService.VectorStore> vectorStores() {
+    public List<VectorStoreDTO> vectorStores() {
         return vectorStore.getAllStores().stream()
                 .map(store -> new VectorStoreDTO(store.getId(), store.getName(), store.getDocuments().size()))
-                .map(dto -> {
-                    VectorStoreService.VectorStore store = new VectorStoreService.VectorStore(dto.id(), dto.name());
-                    // Add documents count
-                    return store;
-                })
                 .toList();
     }
 
@@ -114,8 +109,8 @@ public class AdvancedFeaturesResolver {
 
     @MutationMapping
     public VectorStoreDTO createVectorStore(@Argument String name) {
-        VectorStoreService.VectorStore store = vectorStore.createStore(
-                java.util.UUID.randomUUID().toString(), name);
+        String storeId = java.util.UUID.randomUUID().toString();
+        VectorStoreService.VectorStore store = vectorStore.createStore(storeId, name);
         return new VectorStoreDTO(store.getId(), store.getName(), store.getDocuments().size());
     }
 
@@ -230,6 +225,7 @@ public class AdvancedFeaturesResolver {
 
     // DTOs
     public record VectorStoreDTO(String id, String name, int documentCount) {}
+    public record SearchResultDTO(String documentId, String text, double score, Map<String, Object> metadata) {}
     public record ExecutionTimelineDTO(String executionId, List<TimelineEventDTO> events) {}
     public record TimelineEventDTO(String id, String nodeId, String type, String timestamp, Map<String, Object> data) {}
     public record IOHistoryDTO(String timestamp, Map<String, Object> inputs, Map<String, Object> outputs) {}

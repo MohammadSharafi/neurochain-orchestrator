@@ -23,6 +23,13 @@ public class VectorStoreService {
     }
 
     /**
+     * Get all vector stores
+     */
+    public List<VectorStore> getAllStores() {
+        return new ArrayList<>(stores.values());
+    }
+
+    /**
      * Create a new vector store
      */
     public VectorStore createStore(String storeId, String name) {
