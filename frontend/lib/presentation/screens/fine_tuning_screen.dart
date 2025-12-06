@@ -19,9 +19,8 @@ class FineTuningScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: BlocProvider(
-        create: (_) => FineTuningBloc()..add(LoadFineTuningJobs()),
-        child: Column(
+      body: BlocBuilder<FineTuningBloc, FineTuningState>(
+        builder: (context, state) => Column(
           children: [
             _buildJobList(context),
           ],

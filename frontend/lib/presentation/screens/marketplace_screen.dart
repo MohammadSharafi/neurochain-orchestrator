@@ -19,9 +19,8 @@ class MarketplaceScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: BlocProvider(
-        create: (_) => MarketplaceBloc()..add(LoadMarketplaceItems()),
-        child: Column(
+      body: BlocBuilder<MarketplaceBloc, MarketplaceState>(
+        builder: (context, state) => Column(
           children: [
             _buildCategoryFilter(context),
             const Divider(),

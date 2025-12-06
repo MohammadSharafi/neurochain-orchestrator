@@ -20,10 +20,8 @@ class VectorStoreScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: BlocProvider(
-        create: (_) => VectorStoreBloc()..add(LoadVectorStores()),
-        child: BlocBuilder<VectorStoreBloc, VectorStoreState>(
-          builder: (context, state) {
+      body: BlocBuilder<VectorStoreBloc, VectorStoreState>(
+        builder: (context, state) {
             if (state is VectorStoreLoading) {
               return const Center(child: CircularProgressIndicator());
             }
@@ -90,7 +88,6 @@ class VectorStoreScreen extends StatelessWidget {
             return const SizedBox.shrink();
           },
         ),
-      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showCreateDialog(context),
         icon: const Icon(Icons.add),

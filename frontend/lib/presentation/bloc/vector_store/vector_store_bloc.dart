@@ -1,12 +1,17 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:dartz/dartz.dart';
 import '../../../domain/entities/vector_store.dart';
+import '../../../domain/repositories/vector_store_repository.dart';
+import '../../../core/error/failures.dart';
 
 part 'vector_store_event.dart';
 part 'vector_store_state.dart';
 
 class VectorStoreBloc extends Bloc<VectorStoreEvent, VectorStoreState> {
-  VectorStoreBloc() : super(VectorStoreInitial()) {
+  final VectorStoreRepository repository;
+
+  VectorStoreBloc(this.repository) : super(VectorStoreInitial()) {
     on<LoadVectorStores>(_onLoadVectorStores);
     on<CreateVectorStore>(_onCreateVectorStore);
     on<AddDocument>(_onAddDocument);
@@ -18,48 +23,55 @@ class VectorStoreBloc extends Bloc<VectorStoreEvent, VectorStoreState> {
     Emitter<VectorStoreState> emit,
   ) async {
     emit(VectorStoreLoading());
-    try {
-      // TODO: Load from GraphQL
-      await Future.delayed(const Duration(seconds: 1));
-      emit(VectorStoreLoaded(stores: []));
-    } catch (e) {
-      emit(VectorStoreError(e.toString()));
-    }
+    final result = await repository.getVectorStores();
+    result.fold(
+      (failure) => emit(VectorStoreError(_mapFailureToMessage(failure))),
+      (stores) => emit(VectorStoreLoaded(stores: stores)),
+    );
   }
 
   void _onCreateVectorStore(
     CreateVectorStore event,
     Emitter<VectorStoreState> emit,
   ) async {
-    try {
-      // TODO: Create via GraphQL mutation
-      add(LoadVectorStores());
-    } catch (e) {
-      emit(VectorStoreError(e.toString()));
-    }
+    final result = await repository.createVectorStore(event.name);
+    result.fold(
+      (failure) => emit(VectorStoreError(_mapFailureToMessage(failure))),
+      (_) => add(LoadVectorStores()),
+    );
   }
 
   void _onAddDocument(
     AddDocument event,
     Emitter<VectorStoreState> emit,
   ) async {
-    try {
-      // TODO: Add via GraphQL mutation
-      add(LoadVectorStores());
-    } catch (e) {
-      emit(VectorStoreError(e.toString()));
-    }
+    final result = await repository.addDocument(
+      event.storeId,
+      'doc_${DateTime.now().millisecondsSinceEpoch}',
+      event.text,
+      event.metadata,
+    );
+    result.fold(
+      (failure) => emit(VectorStoreError(_mapFailureToMessage(failure))),
+      (_) => add(LoadVectorStores()),
+    );
   }
 
   void _onDeleteVectorStore(
     DeleteVectorStore event,
     Emitter<VectorStoreState> emit,
   ) async {
-    try {
-      // TODO: Delete via GraphQL mutation
-      add(LoadVectorStores());
-    } catch (e) {
-      emit(VectorStoreError(e.toString()));
+    // TODO: Add delete mutation to GraphQL
+    add(LoadVectorStores());
+  }
+
+  String _mapFailureToMessage(Failure failure) {
+    if (failure is ServerFailure) {
+      return failure.message;
+    } else if (failure is NetworkFailure) {
+      return 'Network error: ${failure.message}';
+    } else {
+      return 'Unexpected error: ${failure.message}';
     }
   }
 }

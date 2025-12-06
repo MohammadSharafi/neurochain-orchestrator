@@ -1,5 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:dartz/dartz.dart';
+import '../../../domain/repositories/ai_sandbox_repository.dart';
+import '../../../core/error/failures.dart';
 
 part 'ai_sandbox_event.dart';
 part 'ai_sandbox_state.dart';

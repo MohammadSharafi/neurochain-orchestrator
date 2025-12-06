@@ -35,13 +35,12 @@ class _AISandboxScreenState extends State<AISandboxScreen> {
           ),
         ],
       ),
-      body: BlocProvider(
-        create: (_) => AISandboxBloc()..add(LoadSandboxHistory()),
-        child: Column(
+      body: BlocBuilder<AISandboxBloc, AISandboxState>(
+        builder: (context, state) => Column(
           children: [
             _buildNodeConfiguration(),
             const Divider(),
-            Expanded(child: _buildExecutionArea()),
+            Expanded(child: _buildExecutionArea(context)),
           ],
         ),
       ),
@@ -98,7 +97,7 @@ class _AISandboxScreenState extends State<AISandboxScreen> {
     );
   }
 
-  Widget _buildExecutionArea() {
+  Widget _buildExecutionArea(BuildContext context) {
     return BlocBuilder<AISandboxBloc, AISandboxState>(
       builder: (context, state) {
         if (state is AISandboxLoading) {

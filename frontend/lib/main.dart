@@ -3,7 +3,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'graphql/graphql_client.dart';
 import 'data/datasources/model_manager_remote_datasource.dart';
+import 'data/datasources/vector_store_remote_datasource.dart';
+import 'data/datasources/ai_sandbox_remote_datasource.dart';
+import 'data/datasources/fine_tuning_remote_datasource.dart';
+import 'data/datasources/marketplace_remote_datasource.dart';
 import 'data/repositories/model_manager_repository_impl.dart';
+import 'data/repositories/vector_store_repository_impl.dart';
+import 'data/repositories/ai_sandbox_repository_impl.dart';
+import 'data/repositories/fine_tuning_repository_impl.dart';
+import 'data/repositories/marketplace_repository_impl.dart';
 import 'presentation/bloc/model_manager/model_manager_bloc.dart';
 import 'presentation/bloc/ai_sandbox/ai_sandbox_bloc.dart';
 import 'presentation/bloc/vector_store/vector_store_bloc.dart';
@@ -43,6 +51,38 @@ class NeuroChainApp extends StatelessWidget {
                 final dataSource = ModelManagerRemoteDataSourceImpl(graphQLClient);
                 final repository = ModelManagerRepositoryImpl(dataSource);
                 return ModelManagerBloc(repository)..add(LoadModels());
+              },
+            ),
+            BlocProvider(
+              create: (context) {
+                final graphQLClient = GraphQLProvider.of(context).value;
+                final dataSource = VectorStoreRemoteDataSourceImpl(graphQLClient);
+                final repository = VectorStoreRepositoryImpl(dataSource);
+                return VectorStoreBloc(repository);
+              },
+            ),
+            BlocProvider(
+              create: (context) {
+                final graphQLClient = GraphQLProvider.of(context).value;
+                final dataSource = AISandboxRemoteDataSourceImpl(graphQLClient);
+                final repository = AISandboxRepositoryImpl(dataSource);
+                return AISandboxBloc(repository);
+              },
+            ),
+            BlocProvider(
+              create: (context) {
+                final graphQLClient = GraphQLProvider.of(context).value;
+                final dataSource = FineTuningRemoteDataSourceImpl(graphQLClient);
+                final repository = FineTuningRepositoryImpl(dataSource);
+                return FineTuningBloc(repository);
+              },
+            ),
+            BlocProvider(
+              create: (context) {
+                final graphQLClient = GraphQLProvider.of(context).value;
+                final dataSource = MarketplaceRemoteDataSourceImpl(graphQLClient);
+                final repository = MarketplaceRepositoryImpl(dataSource);
+                return MarketplaceBloc(repository);
               },
             ),
           ],

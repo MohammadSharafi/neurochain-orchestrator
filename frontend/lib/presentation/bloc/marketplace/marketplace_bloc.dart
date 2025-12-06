@@ -1,11 +1,16 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:dartz/dartz.dart';
+import '../../../domain/repositories/marketplace_repository.dart';
+import '../../../core/error/failures.dart';
 
 part 'marketplace_event.dart';
 part 'marketplace_state.dart';
 
 class MarketplaceBloc extends Bloc<MarketplaceEvent, MarketplaceState> {
-  MarketplaceBloc() : super(MarketplaceInitial()) {
+  final MarketplaceRepository repository;
+
+  MarketplaceBloc(this.repository) : super(MarketplaceInitial()) {
     on<LoadMarketplaceItems>(_onLoadMarketplaceItems);
     on<FilterByCategory>(_onFilterByCategory);
     on<InstallItem>(_onInstallItem);
@@ -16,16 +21,26 @@ class MarketplaceBloc extends Bloc<MarketplaceEvent, MarketplaceState> {
     Emitter<MarketplaceState> emit,
   ) async {
     emit(MarketplaceLoading());
-    try {
-      // TODO: Load from GraphQL
-      await Future.delayed(const Duration(seconds: 1));
-      emit(MarketplaceLoaded(
-        items: [],
-        selectedCategory: null,
-      ));
-    } catch (e) {
-      emit(MarketplaceError(e.toString()));
-    }
+    final currentCategory = state is MarketplaceLoaded
+        ? (state as MarketplaceLoaded).selectedCategory
+        : null;
+    
+    final result = await repository.getMarketplaceItems(currentCategory);
+    result.fold(
+      (failure) => emit(MarketplaceError(_mapFailureToMessage(failure))),
+      (items) => emit(MarketplaceLoaded(
+        items: items.map((item) => MarketplaceItem(
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          category: item.category,
+          version: item.version,
+          author: item.author,
+          installed: item.installed,
+        )).toList(),
+        selectedCategory: currentCategory,
+      )),
+    );
   }
 
   void _onFilterByCategory(
@@ -34,6 +49,7 @@ class MarketplaceBloc extends Bloc<MarketplaceEvent, MarketplaceState> {
   ) {
     if (state is MarketplaceLoaded) {
       final currentState = state as MarketplaceLoaded;
+      add(LoadMarketplaceItems());
       emit(MarketplaceLoaded(
         items: currentState.items,
         selectedCategory: event.category,
@@ -45,11 +61,26 @@ class MarketplaceBloc extends Bloc<MarketplaceEvent, MarketplaceState> {
     InstallItem event,
     Emitter<MarketplaceState> emit,
   ) async {
-    try {
-      // TODO: Install via GraphQL mutation
-      add(LoadMarketplaceItems());
-    } catch (e) {
-      emit(MarketplaceError(e.toString()));
+    final result = await repository.installMarketplaceItem(event.itemId);
+    result.fold(
+      (failure) => emit(MarketplaceError(_mapFailureToMessage(failure))),
+      (installResult) {
+        if (installResult.success) {
+          add(LoadMarketplaceItems());
+        } else {
+          emit(MarketplaceError(installResult.error ?? installResult.message));
+        }
+      },
+    );
+  }
+
+  String _mapFailureToMessage(Failure failure) {
+    if (failure is ServerFailure) {
+      return failure.message;
+    } else if (failure is NetworkFailure) {
+      return 'Network error: ${failure.message}';
+    } else {
+      return 'Unexpected error: ${failure.message}';
     }
   }
 }
