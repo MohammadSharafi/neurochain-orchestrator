@@ -1,12 +1,17 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:dartz/dartz.dart';
 import '../../../domain/entities/model_info.dart';
+import '../../../domain/repositories/model_manager_repository.dart';
+import '../../../core/error/failures.dart';
 
 part 'model_manager_event.dart';
 part 'model_manager_state.dart';
 
 class ModelManagerBloc extends Bloc<ModelManagerEvent, ModelManagerState> {
-  ModelManagerBloc() : super(ModelManagerInitial()) {
+  final ModelManagerRepository repository;
+
+  ModelManagerBloc(this.repository) : super(ModelManagerInitial()) {
     on<LoadModels>(_onLoadModels);
     on<InstallModel>(_onInstallModel);
     on<RemoveModel>(_onRemoveModel);
@@ -15,12 +20,11 @@ class ModelManagerBloc extends Bloc<ModelManagerEvent, ModelManagerState> {
 
   void _onLoadModels(LoadModels event, Emitter<ModelManagerState> emit) async {
     emit(ModelManagerLoading());
-    try {
-      // TODO: Load from GraphQL
-      emit(ModelManagerLoaded(models: []));
-    } catch (e) {
-      emit(ModelManagerError(e.toString()));
-    }
+    final result = await repository.getInstalledModels();
+    result.fold(
+      (failure) => emit(ModelManagerError(_mapFailureToMessage(failure))),
+      (models) => emit(ModelManagerLoaded(models: models)),
+    );
   }
 
   void _onInstallModel(InstallModel event, Emitter<ModelManagerState> emit) async {

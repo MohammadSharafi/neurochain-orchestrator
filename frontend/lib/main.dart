@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'graphql/graphql_client.dart';
+import 'data/datasources/model_manager_remote_datasource.dart';
+import 'data/repositories/model_manager_repository_impl.dart';
 import 'presentation/bloc/model_manager/model_manager_bloc.dart';
 import 'presentation/bloc/ai_sandbox/ai_sandbox_bloc.dart';
 import 'presentation/bloc/vector_store/vector_store_bloc.dart';
@@ -35,7 +37,14 @@ class NeuroChainApp extends StatelessWidget {
         ),
         home: MultiBlocProvider(
           providers: [
-            BlocProvider(create: (_) => ModelManagerBloc()..add(LoadModels())),
+            BlocProvider(
+              create: (context) {
+                final graphQLClient = GraphQLProvider.of(context).value;
+                final dataSource = ModelManagerRemoteDataSourceImpl(graphQLClient);
+                final repository = ModelManagerRepositoryImpl(dataSource);
+                return ModelManagerBloc(repository)..add(LoadModels());
+              },
+            ),
           ],
           child: const HomeScreen(),
         ),

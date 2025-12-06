@@ -28,6 +28,7 @@ dependencies:
   uuid: ^4.2.1
   intl: ^0.18.1
   json_annotation: ^4.8.1
+  dartz: ^0.10.1
 
 dev_dependencies:
   flutter_test:
