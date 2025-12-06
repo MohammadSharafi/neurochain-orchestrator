@@ -5,9 +5,13 @@ import 'graphql/graphql_client.dart';
 import 'presentation/bloc/model_manager/model_manager_bloc.dart';
 import 'presentation/bloc/ai_sandbox/ai_sandbox_bloc.dart';
 import 'presentation/bloc/vector_store/vector_store_bloc.dart';
+import 'presentation/bloc/fine_tuning/fine_tuning_bloc.dart';
+import 'presentation/bloc/marketplace/marketplace_bloc.dart';
 import 'presentation/screens/model_manager_screen.dart';
 import 'presentation/screens/ai_sandbox_screen.dart';
 import 'presentation/screens/vector_store_screen.dart';
+import 'presentation/screens/fine_tuning_screen.dart';
+import 'presentation/screens/marketplace_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -55,6 +59,7 @@ class HomeScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
+        childAspectRatio: 1.1,
         children: [
           _FeatureCard(
             title: 'Model Manager',
@@ -91,6 +96,32 @@ class HomeScreen extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (_) => const VectorStoreScreen(),
+                ),
+              );
+            },
+          ),
+          _FeatureCard(
+            title: 'Fine-Tuning',
+            icon: Icons.train,
+            color: Colors.indigo,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const FineTuningScreen(),
+                ),
+              );
+            },
+          ),
+          _FeatureCard(
+            title: 'Marketplace',
+            icon: Icons.store,
+            color: Colors.teal,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const MarketplaceScreen(),
                 ),
               );
             },
